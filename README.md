@@ -119,17 +119,6 @@ personal-book-library-next/
 └── tsconfig.json               # TypeScript configuration
 ```
 
-## 🚀 Deployment
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme).
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/ccmelvin/personal-book-library-next)
-
-Or deploy to other platforms:
-- [Netlify](https://www.netlify.com/)
-- [Railway](https://railway.app/)
-- [Render](https://render.com/)
-
 ## 🤝 Contributing
 
 1. Fork the repository
