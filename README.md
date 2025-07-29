@@ -18,10 +18,6 @@ A modern, responsive book management application built with Next.js that allows 
 - 📱 **Responsive Design**: Works seamlessly on desktop, tablet, and mobile devices
 - ⚡ **Fast Performance**: Optimized with Next.js 14 and modern React patterns
 
-## 🖼️ Screenshots
-
-> Add screenshots of your application here to showcase the UI
-
 ## 🚀 Demo
 
 [Live Demo](https://your-demo-link.vercel.app) • [Repository](https://github.com/ccmelvin/personal-book-library-next)
@@ -150,7 +146,6 @@ This project is open source and available under the [MIT License](LICENSE).
 
 **Cassia Melvin**
 - GitHub: [@ccmelvin](https://github.com/ccmelvin)
-- Portfolio: [your-portfolio-link.com](https://your-portfolio-link.com)
 
 ---
 
