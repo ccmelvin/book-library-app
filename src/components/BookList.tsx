@@ -172,7 +172,7 @@ export default function BookList({ books, onRemoveBook, onEditBook, onToggleFavo
                   
                   {book.notes && (
                     <div className="mt-2">
-                      <p className="text-sm text-gray-600 italic line-clamp-2">"{book.notes}"</p>
+                      <p className="text-sm text-gray-600 italic line-clamp-2">&quot;{book.notes}&quot;</p>
                     </div>
                   )}
                 </div>
