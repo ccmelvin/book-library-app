@@ -26,7 +26,7 @@ A modern, responsive book management application built with Next.js that allows 
 
 ## 🚀 Demo
 
-[Live Demo](https://your-demo-link.vercel.app) • [Repository](https://github.com/ccmelvin/personal-book-library-next)
+[Live Demo](https://book-library-k0xh0xdmx-ccmelvins-projects.vercel.app) • [Repository](https://github.com/ccmelvin/book-library-app)
 
 ## 🛠️ Installation
 
