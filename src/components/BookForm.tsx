@@ -1,11 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Book } from '@/types/book';
 
 interface BookFormProps {
   onAddBook: (book: Book) => void;
+  editingBook?: { book: Book; index: number } | null;
+  onUpdateBook?: (book: Book, index: number) => void;
+  onCancelEdit?: () => void;
 }
 
-export default function BookForm({ onAddBook }: BookFormProps) {
+export default function BookForm({ onAddBook, editingBook, onUpdateBook, onCancelEdit }: BookFormProps) {
   const [newBook, setNewBook] = useState<Book>({
     title: "",
     author: "",
@@ -17,6 +20,12 @@ export default function BookForm({ onAddBook }: BookFormProps) {
     notes: ""
   });
 
+  useEffect(() => {
+    if (editingBook) {
+      setNewBook(editingBook.book);
+    }
+  }, [editingBook]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setNewBook({
@@ -27,12 +36,16 @@ export default function BookForm({ onAddBook }: BookFormProps) {
 
   const handleSubmit = () => {
     if (newBook.title && newBook.author) {
-      const bookToAdd = {
-        ...newBook,
-        dateAdded: new Date().toISOString().split('T')[0],
-        ...(newBook.status === 'Read' && { dateRead: new Date().toISOString().split('T')[0] })
-      };
-      onAddBook(bookToAdd);
+      if (editingBook && onUpdateBook) {
+        onUpdateBook(newBook, editingBook.index);
+      } else {
+        const bookToAdd = {
+          ...newBook,
+          dateAdded: new Date().toISOString().split('T')[0],
+          ...(newBook.status === 'Read' && { dateRead: new Date().toISOString().split('T')[0] })
+        };
+        onAddBook(bookToAdd);
+      }
       
       // Reset form
       setNewBook({
@@ -53,9 +66,9 @@ export default function BookForm({ onAddBook }: BookFormProps) {
       <div className="p-4 border-b border-gray-100">
         <h2 className="text-lg font-semibold text-gray-900 flex items-center">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={editingBook ? "M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" : "M12 6v6m0 0v6m0-6h6m-6 0H6"} />
           </svg>
-          Add a Book
+          {editingBook ? 'Edit Book' : 'Add a Book'}
         </h2>
       </div>
       
@@ -167,13 +180,23 @@ export default function BookForm({ onAddBook }: BookFormProps) {
           </div>
         </div>
         
-        <button 
-          onClick={handleSubmit}
-          disabled={!newBook.title || !newBook.author}
-          className="w-full mt-4 px-4 py-2 bg-green-600 text-white text-sm rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors font-medium disabled:bg-gray-400 disabled:cursor-not-allowed"
-        >
-          Add to My Books
-        </button>
+        <div className="mt-4 space-y-2">
+          <button 
+            onClick={handleSubmit}
+            disabled={!newBook.title || !newBook.author}
+            className="w-full px-4 py-2 bg-green-600 text-white text-sm rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors font-medium disabled:bg-gray-400 disabled:cursor-not-allowed"
+          >
+            {editingBook ? 'Update Book' : 'Add to My Books'}
+          </button>
+          {editingBook && onCancelEdit && (
+            <button 
+              onClick={onCancelEdit}
+              className="w-full px-4 py-2 bg-gray-200 text-gray-700 text-sm rounded hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors font-medium"
+            >
+              Cancel
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

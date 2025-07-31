@@ -4,10 +4,12 @@ import { Book } from '@/types/book';
 interface BookListProps {
   books: Book[];
   onRemoveBook: (index: number) => void;
+  onEditBook: (index: number) => void;
+  onToggleFavorite: (index: number) => void;
   viewMode?: 'list' | 'grid';
 }
 
-export default function BookList({ books, onRemoveBook, viewMode = 'list' }: BookListProps) {
+export default function BookList({ books, onRemoveBook, onEditBook, onToggleFavorite, viewMode = 'list' }: BookListProps) {
   if (books.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -179,6 +181,7 @@ export default function BookList({ books, onRemoveBook, viewMode = 'list' }: Boo
                 <div className="flex flex-col space-y-3 opacity-0 group-hover:opacity-100 transition-opacity">
                   <div className="flex flex-col space-y-1">
                     <button 
+                      onClick={() => onEditBook(index)}
                       className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded transition-colors"
                       title="Edit book"
                     >
@@ -196,10 +199,15 @@ export default function BookList({ books, onRemoveBook, viewMode = 'list' }: Boo
                       </svg>
                     </button>
                     <button 
-                      className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors" 
-                      title="Add to favorites"
+                      onClick={() => onToggleFavorite(index)}
+                      className={`p-1.5 rounded transition-colors ${
+                        book.isFavorite 
+                          ? 'text-red-500 hover:text-red-600 hover:bg-red-50' 
+                          : 'text-gray-400 hover:text-red-500 hover:bg-red-50'
+                      }`}
+                      title={book.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill={book.isFavorite ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                       </svg>
                     </button>

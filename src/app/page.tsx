@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect } from 'react';
 import BookForm from '@/components/BookForm';
 import BookFilters from '@/components/BookFilters';
 import BookList from '@/components/BookList';
+import EditBookModal from '@/components/EditBookModal';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { Book, Filters } from '@/types/book';
 
@@ -19,6 +20,8 @@ export default function Home() {
   const [sortBy, setSortBy] = useState("title");
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [activeTab, setActiveTab] = useState<string>('all');
+  const [editingBook, setEditingBook] = useState<{ book: Book; index: number } | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {
     if (books.length === 0) {
@@ -68,6 +71,30 @@ export default function Home() {
 
   const handleRemoveBook = (index: number) => {
     setBooks(books.filter((_, i) => i !== index));
+  };
+
+  const handleEditBook = (index: number) => {
+    setEditingBook({ book: books[index], index });
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateBook = (updatedBook: Book) => {
+    if (editingBook) {
+      const updatedBooks = [...books];
+      updatedBooks[editingBook.index] = updatedBook;
+      setBooks(updatedBooks);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsEditModalOpen(false);
+    setEditingBook(null);
+  };
+
+  const handleToggleFavorite = (index: number) => {
+    const updatedBooks = [...books];
+    updatedBooks[index] = { ...updatedBooks[index], isFavorite: !updatedBooks[index].isFavorite };
+    setBooks(updatedBooks);
   };
 
   const filteredBooks = useMemo(() => {
@@ -285,7 +312,7 @@ export default function Home() {
               )}
               
               <div className="p-6">
-                <BookList books={filteredBooks} onRemoveBook={handleRemoveBook} viewMode={viewMode} />
+                <BookList books={filteredBooks} onRemoveBook={handleRemoveBook} onEditBook={handleEditBook} onToggleFavorite={handleToggleFavorite} viewMode={viewMode} />
               </div>
             </div>
           </div>
@@ -295,6 +322,15 @@ export default function Home() {
           <p className="text-gray-400 text-sm">📚 Personal Book Library • Built by Cassia Melvin</p>
         </footer>
       </div>
+      
+      {editingBook && (
+        <EditBookModal
+          book={editingBook.book}
+          isOpen={isEditModalOpen}
+          onClose={handleCloseModal}
+          onSave={handleUpdateBook}
+        />
+      )}
     </div>
   );
 }

@@ -10,6 +10,7 @@ export interface Book {
   pages?: number;
   isbn?: string;
   notes?: string;
+  isFavorite?: boolean;
 }
 
 export interface Filters {
