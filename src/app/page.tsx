@@ -127,8 +127,8 @@ export default function Home() {
       result.sort((a, b) => b.rating - a.rating);
     } else {
       result.sort((a, b) => {
-        const valA = a[sortBy as keyof Book].toString().toLowerCase();
-        const valB = b[sortBy as keyof Book].toString().toLowerCase();
+        const valA = (a[sortBy as keyof Book] || '').toString().toLowerCase();
+        const valB = (b[sortBy as keyof Book] || '').toString().toLowerCase();
         return valA < valB ? -1 : valA > valB ? 1 : 0;
       });
     }
