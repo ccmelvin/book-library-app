@@ -1,54 +1,66 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import BookForm from '@/components/BookForm';
 import BookFilters from '@/components/BookFilters';
 import BookList from '@/components/BookList';
-
-interface Book {
-  title: string;
-  author: string;
-  category: string;
-  rating: number;
-  status: string;
-}
-
-interface Filters {
-  category: string;
-  status: string;
-}
+import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { Book, Filters } from '@/types/book';
 
 export default function Home() {
-  const [books, setBooks] = useState<Book[]>([
-    {
-      title: "The Great Gatsby",
-      author: "F. Scott Fitzgerald",
-      category: "Fiction",
-      rating: 4,
-      status: "Read"
-    },
-    {
-      title: "Sapiens",
-      author: "Yuval Noah Harari",
-      category: "Non-Fiction",
-      rating: 5,
-      status: "Read"
-    },
-    {
-      title: "Dune",
-      author: "Frank Herbert",
-      category: "Science Fiction",
-      rating: 5,
-      status: "Reading"
-    }
-  ]);
+  const [books, setBooks] = useLocalStorage<Book[]>('books-v2', []);
 
   const [filters, setFilters] = useState<Filters>({
     category: "",
-    status: ""
+    status: "",
+    search: ""
   });
 
   const [sortBy, setSortBy] = useState("title");
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [activeTab, setActiveTab] = useState<string>('all');
+
+  useEffect(() => {
+    if (books.length === 0) {
+      setBooks([
+        {
+          title: "Dom Casmurro",
+          author: "Machado de Assis",
+          category: "Fiction",
+          rating: 5,
+          status: "Read",
+          coverImage: "/book-cover/dom-casmurro.png",
+          dateAdded: "2024-01-15",
+          dateRead: "2024-01-20",
+          pages: 256,
+          notes: "A masterpiece of Brazilian literature exploring jealousy and obsession."
+        },
+        {
+          title: "The Book Thief",
+          author: "Markus Zusak",
+          category: "Fiction",
+          rating: 5,
+          status: "Read",
+          coverImage: "/book-cover/the-book-thief.png",
+          dateAdded: "2024-02-01",
+          dateRead: "2024-02-15",
+          pages: 552,
+          notes: "A beautiful and heartbreaking story narrated by Death during WWII."
+        },
+        {
+          title: "Torto Arado",
+          author: "Itamar Vieira Junior",
+          category: "Fiction",
+          rating: 4,
+          status: "Reading",
+          coverImage: "/book-cover/torto-arado.png",
+          dateAdded: "2024-03-01",
+          pages: 264,
+          notes: "Powerful novel about rural Brazil and the lives of two sisters."
+        }
+      ]);
+    }
+  }, [books.length, setBooks]);
 
   const handleAddBook = (newBook: Book) => {
     setBooks([...books, newBook]);
@@ -61,6 +73,11 @@ export default function Home() {
   const filteredBooks = useMemo(() => {
     let result = [...books];
     
+    // Apply tab filter
+    if (activeTab !== 'all') {
+      result = result.filter(book => book.status === activeTab);
+    }
+    
     // Apply filters
     if (filters.category) {
       result = result.filter(book => book.category === filters.category);
@@ -68,6 +85,14 @@ export default function Home() {
     
     if (filters.status) {
       result = result.filter(book => book.status === filters.status);
+    }
+    
+    if (filters.search) {
+      const searchTerm = filters.search.toLowerCase();
+      result = result.filter(book => 
+        book.title.toLowerCase().includes(searchTerm) ||
+        book.author.toLowerCase().includes(searchTerm)
+      );
     }
     
     // Apply sorting
@@ -82,22 +107,112 @@ export default function Home() {
     }
     
     return result;
-  }, [books, filters, sortBy]);
+  }, [books, filters, sortBy, activeTab]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-neutral-50 to-slate-50 py-8">
-      <div className="container mx-auto px-4 max-w-6xl">
-        <header className="mb-10 text-center">
-          <div className="inline-block mb-3">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-slate-600 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-            </svg>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center">
+              <div className="flex items-center">
+                <div className="w-8 h-8 bg-green-600 rounded flex items-center justify-center mr-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
+                </div>
+                <h1 className="text-xl font-bold text-gray-900">BookTracker</h1>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-4">
+              <div className="relative">
+                <input 
+                  type="text"
+                  placeholder="Search books..."
+                  value={filters.search}
+                  onChange={(e) => setFilters({...filters, search: e.target.value})}
+                  className="w-64 px-4 py-2 pl-10 pr-4 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                />
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+            </div>
           </div>
-          <h1 className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-stone-700 to-neutral-700 mb-2">Personal Book Library</h1>
-          <p className="text-stone-500 text-lg max-w-xl mx-auto">Track, organize, and discover your reading journey with this beautiful digital bookshelf</p>
-        </header>
+        </div>
+      </header>
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Reading Challenge & Stats */}
+        <div className="mb-8">
+          <div className="bg-white rounded-lg shadow-sm border p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">2024 Reading Challenge</h2>
+              <button className="text-green-600 hover:text-green-700 text-sm font-medium">Edit Goal</button>
+            </div>
+            <div className="flex items-center space-x-6">
+              <div className="flex-1">
+                <div className="flex justify-between text-sm text-gray-600 mb-2">
+                  <span>{books.filter(b => b.status === 'Read').length} of 12 books</span>
+                  <span>{Math.round((books.filter(b => b.status === 'Read').length / 12) * 100)}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-green-600 h-2 rounded-full transition-all duration-300" 
+                    style={{width: `${Math.min((books.filter(b => b.status === 'Read').length / 12) * 100, 100)}%`}}
+                  ></div>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-bold text-gray-900">{books.filter(b => b.status === 'Read').length}</div>
+                <div className="text-sm text-gray-600">books read</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Navigation Tabs */}
+        <div className="mb-6">
+          <nav className="flex space-x-8">
+            <button 
+              onClick={() => setActiveTab('all')}
+              className={`border-b-2 pb-2 px-1 text-sm font-medium ${
+                activeTab === 'all' ? 'border-green-600 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              All Books ({books.length})
+            </button>
+            <button 
+              onClick={() => setActiveTab('Read')}
+              className={`border-b-2 pb-2 px-1 text-sm font-medium ${
+                activeTab === 'Read' ? 'border-green-600 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Read ({books.filter(b => b.status === 'Read').length})
+            </button>
+            <button 
+              onClick={() => setActiveTab('Reading')}
+              className={`border-b-2 pb-2 px-1 text-sm font-medium ${
+                activeTab === 'Reading' ? 'border-green-600 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Currently Reading ({books.filter(b => b.status === 'Reading').length})
+            </button>
+            <button 
+              onClick={() => setActiveTab('To Read')}
+              className={`border-b-2 pb-2 px-1 text-sm font-medium ${
+                activeTab === 'To Read' ? 'border-green-600 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Want to Read ({books.filter(b => b.status === 'To Read').length})
+            </button>
+          </nav>
+        </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           <div className="lg:col-span-1 space-y-6">
             <BookForm onAddBook={handleAddBook} />
             
@@ -109,100 +224,75 @@ export default function Home() {
             />
           </div>
           
-          <div className="lg:col-span-2">
-            <div className="bg-white p-8 rounded-2xl shadow-xl border border-stone-100 backdrop-blur-sm bg-white/80 relative overflow-hidden">
-              {/* Decorative elements */}
-              <div className="absolute -top-24 -right-24 w-48 h-48 bg-stone-100 rounded-full opacity-30"></div>
-              <div className="absolute -bottom-16 -left-16 w-32 h-32 bg-neutral-100 rounded-full opacity-30"></div>
-              
-              <div className="flex justify-between items-center mb-8 relative z-10">
-                <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-stone-700 to-neutral-700 flex items-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 mr-3 text-stone-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                  </svg>
-                  My Collection
-                </h2>
-                
-                <div className="flex items-center space-x-3">
-                  <div className="flex items-center space-x-1">
-                    {['Read', 'Reading', 'To Read'].map((status) => (
-                      <span key={status} 
-                        className={`w-3 h-3 rounded-full ${
-                          status === 'Read' ? 'bg-stone-600' : 
-                          status === 'Reading' ? 'bg-amber-600' : 
-                          'bg-slate-600'
-                        }`}>
-                      </span>
-                    ))}
+          <div className="lg:col-span-3">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+              <div className="p-6 border-b border-gray-100">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-xl font-semibold text-gray-900">Collection</h2>
+                  <div className="flex items-center space-x-4">
+                    <div className="flex bg-gray-100 rounded-lg p-1">
+                      <button 
+                        onClick={() => setViewMode('list')}
+                        className={`p-2 rounded-md transition-colors ${
+                          viewMode === 'list' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'
+                        }`}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                        </svg>
+                      </button>
+                      <button 
+                        onClick={() => setViewMode('grid')}
+                        className={`p-2 rounded-md transition-colors ${
+                          viewMode === 'grid' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'
+                        }`}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                        </svg>
+                      </button>
+                    </div>
+                    <span className="text-sm text-gray-500">
+                      {filteredBooks.length} {filteredBooks.length === 1 ? 'book' : 'books'}
+                    </span>
                   </div>
-                  
-                  <span className="bg-gradient-to-r from-stone-600 to-neutral-600 text-white px-4 py-1.5 rounded-full font-medium text-sm flex items-center shadow-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                    </svg>
-                    {filteredBooks.length} {filteredBooks.length === 1 ? 'book' : 'books'}
-                  </span>
                 </div>
               </div>
               
-              {/* Collection stats */}
               {books.length > 0 && (
-                <div className="grid grid-cols-3 gap-4 mb-8 relative z-10">
-                  <div className="bg-gradient-to-br from-stone-50 to-stone-100 p-4 rounded-xl border border-stone-200">
-                    <div className="text-stone-700 font-medium">Read</div>
-                    <div className="text-2xl font-bold text-stone-800">
-                      {books.filter(b => b.status === 'Read').length}
+                <div className="px-6 py-4 bg-gray-50 border-b border-gray-100">
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-green-600">
+                        {books.filter(b => b.status === 'Read').length}
+                      </div>
+                      <div className="text-sm text-gray-600">Read</div>
                     </div>
-                  </div>
-                  <div className="bg-gradient-to-br from-amber-50 to-amber-100 p-4 rounded-xl border border-amber-200">
-                    <div className="text-amber-700 font-medium">Reading</div>
-                    <div className="text-2xl font-bold text-amber-800">
-                      {books.filter(b => b.status === 'Reading').length}
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-blue-600">
+                        {books.filter(b => b.status === 'Reading').length}
+                      </div>
+                      <div className="text-sm text-gray-600">Reading</div>
                     </div>
-                  </div>
-                  <div className="bg-gradient-to-br from-slate-50 to-slate-100 p-4 rounded-xl border border-slate-200">
-                    <div className="text-slate-700 font-medium">To Read</div>
-                    <div className="text-2xl font-bold text-slate-800">
-                      {books.filter(b => b.status === 'To Read').length}
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-gray-600">
+                        {books.filter(b => b.status === 'To Read').length}
+                      </div>
+                      <div className="text-sm text-gray-600">To Read</div>
                     </div>
                   </div>
                 </div>
               )}
               
-              {/* View options */}
-              {books.length > 0 && (
-                <div className="flex justify-between items-center mb-6 relative z-10">
-                  <div className="text-sm text-gray-500">
-                    {filteredBooks.length} of {books.length} books
-                    {(filters.category || filters.status) && (
-                      <span>
-                        (filtered)
-                      </span>
-                    )}
-                  </div>
-                  
-                  <div className="flex bg-stone-100 p-1 rounded-lg">
-                    <button className="p-1.5 rounded-md flex items-center justify-center w-8 h-8 bg-white shadow-sm">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-stone-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-                      </svg>
-                    </button>
-                    <button className="p-1.5 rounded-md flex items-center justify-center w-8 h-8 text-gray-500 hover:text-gray-700">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              )}
-              
-              <BookList books={filteredBooks} onRemoveBook={handleRemoveBook} />
+              <div className="p-6">
+                <BookList books={filteredBooks} onRemoveBook={handleRemoveBook} viewMode={viewMode} />
+              </div>
             </div>
           </div>
         </div>
         
-        <footer className="mt-12 text-center text-gray-500 text-sm">
-          <p>© {new Date().getFullYear()} Personal Book Library. Built with Next.js and Tailwind CSS.</p>
+        <footer className="mt-16 text-center">
+          <p className="text-gray-400 text-sm">📚 Personal Book Library • Built by Cassia Melvin</p>
         </footer>
       </div>
     </div>

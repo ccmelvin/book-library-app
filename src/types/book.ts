@@ -4,9 +4,16 @@ export interface Book {
   category: string;
   rating: number;
   status: string;
+  coverImage?: string;
+  dateAdded?: string;
+  dateRead?: string;
+  pages?: number;
+  isbn?: string;
+  notes?: string;
 }
 
 export interface Filters {
   category: string;
   status: string;
+  search: string;
 }
